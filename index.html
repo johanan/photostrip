@@ -1,0 +1,146 @@
+<!DOCTYPE  html>
+<html>
+<head>
+    <title>Canvas Test</title>
+    <style>
+        .canvas-container{
+            position: relative;
+        }
+
+        .canvas-photo {
+            width: 595px;
+            height: 425px;
+        }
+
+        .canvas-small-panel {
+            width: 270px;
+            height: 180px;
+        }
+
+        canvas { border: 1px solid black; }
+
+        .canvas-stacked{
+            position: absolute;
+        }
+    </style>
+
+    <script type="text/javascript" src="http://evanw.github.com/glfx.js/glfx.js"></script>
+    <script src="wcvj.js"></script>
+</head>
+<body>
+    <h1>Build that canvas</h1>
+    <div id="canvas-container" class="canvas-container">
+        <canvas id="final" width="1190" height="850" class="canvas-photo"></canvas>
+    </div>
+</body>
+<script>
+    var requestAnimFrame = (function(){
+		return  window.requestAnimationFrame ||
+			window.webkitRequestAnimationFrame ||
+			window.mozRequestAnimationFrame    ||
+			window.oRequestAnimationFrame      ||
+			window.msRequestAnimationFrame     ||
+			function( callback ){
+				window.setTimeout(callback, 1000 / 60);
+			};
+	})();
+
+     Layer = function Layer(el, dx, dy){
+        this.el = el;
+        this.width = el.width;
+        this.height = el.height;
+        this.x = dx;
+        this.y = dy;
+        this.done = false;
+        this.draw = function(){};
+        this.ctx = this.el.getContext('2d');
+    }
+
+    Layer.prototype = {
+        update: function update(){
+            if(!this.done){
+                this.draw.apply(this.el, [this.ctx]);
+            }
+        },
+
+        addText: function addText(text){
+            //console.log(text);
+        }
+     };
+
+    LayeredCanvas = function LayeredCanvas(finalCanvas){
+        this.final = finalCanvas;
+        this.layers = [];
+        this.layerHash = {};
+        this.ctx = final.getContext('2d');
+    };
+
+    LayeredCanvas.prototype = {
+        addLayer: function(el, name){
+            this.layers.push(el);
+            this.layerHash[name] = this.layers.length - 1
+        },
+
+        getLayerByName: function(name){
+            return this.layers[this.layerHash[name]];
+        },
+
+        render: function(){
+            for(var i=0; i<this.layers.length;i++)
+            {
+                this.layers[i].update();
+                this.ctx.drawImage(this.layers[i].el, this.layers[i].x, this.layers[i].y);
+            }
+        }
+    };
+
+    var canvas = document.getElementById('final');
+    var canvas_container = document.getElementById('canvas-container');
+    var ctx = canvas.getContext('2d');
+    var layered = new LayeredCanvas(canvas);
+    layered.addLayer(new Layer(NewCanvas(540, 360, "rgb(200,0,0)"), 0, 0), 'Panel1');
+    layered.addLayer(new Layer(NewCanvas(640, 360,"rgb(0,200,0)"), 550, 0), 'Panel2');
+    layered.addLayer(new Layer(NewCanvas(640, 480, "rgb(0,0,200)"), 0, 370), 'Panel3');
+    layered.addLayer(new Layer(NewCanvas(540, 480, "rgb(200,200,0)"), 650, 370), 'Background');
+
+    requestAnimFrame(FullDraw);
+
+    function FullDraw()
+    {
+        layered.render();
+        requestAnimFrame(FullDraw);
+    }
+
+    function NewCanvas(width, height, fill){
+        var canv = document.createElement('canvas');
+        canv.width = width;
+        canv.height = height;
+        var cb_ctx = canv.getContext('2d');
+        cb_ctx.fillStyle = fill; //"rgb(200,0,0)"
+        cb_ctx.fillRect(0,0, width, height);
+
+        return canv;
+    }
+
+
+
+    var a = wcvj.webcam('a', {glfx: true});
+    a.video.addEventListener('canplay', function(e){
+        a.setFilter([['ink',[0.4]]]);
+        console.log(e);
+        function test(ctx){
+            ctx.drawImage(a.canvas, 50, 50, 540, 360, 0,0, 540, 360);
+        };
+
+        function full(ctx){
+            ctx.drawImage(a.canvas, 0, 0);
+        }
+
+        layered.getLayerByName('Panel1').draw = test;
+        layered.getLayerByName('Panel2').draw = full;
+        layered.getLayerByName('Panel3').draw = full;
+
+    });
+
+</script>
+</html>

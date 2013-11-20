@@ -94,14 +94,27 @@
         }
     };
 
+    var img = new Image();
+    img.src = 'lobster_dog.jpg';
     var canvas = document.getElementById('final');
     var canvas_container = document.getElementById('canvas-container');
     var ctx = canvas.getContext('2d');
     var layered = new LayeredCanvas(canvas);
+    var backCanvas = document.createElement('canvas');
+    backCanvas.width = 540;
+    backCanvas.height = 480;
     layered.addLayer(new Layer(NewCanvas(540, 360, "rgb(200,0,0)"), 0, 0), 'Panel1');
     layered.addLayer(new Layer(NewCanvas(640, 360,"rgb(0,200,0)"), 550, 0), 'Panel2');
     layered.addLayer(new Layer(NewCanvas(640, 480, "rgb(0,0,200)"), 0, 370), 'Panel3');
-    layered.addLayer(new Layer(NewCanvas(540, 480, "rgb(200,200,0)"), 650, 370), 'Background');
+    layered.addLayer(new Layer(backCanvas, 650, 370), 'Background');
+
+    img.onload = function()
+    {
+        var background = layered.getLayerByName('Background');
+        var ratio = img.width / background.width;
+        background.ctx.drawImage(img, 0, 0, img.width / ratio, img.height / ratio) ;
+        //background.done = true;
+    }
 
     requestAnimFrame(FullDraw);
 

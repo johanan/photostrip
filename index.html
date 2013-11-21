@@ -8,19 +8,8 @@
         }
 
         .canvas-photo {
-            width: 595px;
-            height: 425px;
-        }
-
-        .canvas-small-panel {
-            width: 270px;
-            height: 180px;
-        }
-
-        canvas { border: 1px solid black; }
-
-        .canvas-stacked{
-            position: absolute;
+            width: 892px;
+            height: 637px;
         }
     </style>
 
@@ -61,10 +50,44 @@
             if(!this.done){
                 this.draw.apply(this.el, [this.ctx]);
             }
+
+            return this.done;
         },
 
-        addText: function addText(text){
-            //console.log(text);
+        addText: function addText(text, fontSize, x, y){
+           this.ctx.font = fontSize + 'px Arial';
+           this.ctx.fillStyle = "white";
+           this.ctx.lineWidth = 6;
+           this.ctx.textBaseline = "alphabetic";
+           this.clearCanvas();
+           this.wrapText(text, x, y, (this.width - x), fontSize + 5)
+        },
+
+        wrapText: function wrapText(text, x, y, maxWidth, lineHeight) {
+            var words = text.split(' ');
+            var line = '';
+
+            for (var n =0; n < words.length; n++) {
+                var testLine = line + words[n] + ' ';
+                var metrics = this.ctx.measureText(testLine);
+                var testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    this.ctx.strokeText(line, x, y);
+                    this.ctx.fillText(line, x, y);
+                    line = words[n] + ' ';
+                    y += lineHeight;
+                }
+                else {
+                    line = testLine;
+                }
+            }
+
+            this.ctx.strokeText(line, x, y);
+            this.ctx.fillText(line, x, y);
+        },
+
+        clearCanvas: function clearCanvas() {
+            this.ctx.clearRect(0, 0, this.width, this.height);
         }
      };
 
@@ -91,6 +114,13 @@
                 this.layers[i].update();
                 this.ctx.drawImage(this.layers[i].el, this.layers[i].x, this.layers[i].y);
             }
+        },
+
+        getImage: function() {
+            var img = new Image();
+            this.render();
+            img.src = this.final.toDataURL();
+            return img;
         }
     };
 
@@ -103,17 +133,31 @@
     var backCanvas = document.createElement('canvas');
     backCanvas.width = 540;
     backCanvas.height = 480;
-    layered.addLayer(new Layer(NewCanvas(540, 360, "rgb(200,0,0)"), 0, 0), 'Panel1');
-    layered.addLayer(new Layer(NewCanvas(640, 360,"rgb(0,200,0)"), 550, 0), 'Panel2');
-    layered.addLayer(new Layer(NewCanvas(640, 480, "rgb(0,0,200)"), 0, 370), 'Panel3');
+
+    var textCanvas = document.createElement('canvas');
+    textCanvas.width = 540;
+    textCanvas.height = 480;
+
+    var countDown = document.createElement('canvas');
+    countDown.width = 1190;
+    countDown.height = 850;
+
+    layered.addLayer(new Layer(NewCanvas(1190, 850, "rgb(255,255,255)"), 0, 0), 'Base')
+    layered.addLayer(new Layer(NewCanvas(540, 360, "rgb(0,0,0)"), 0, 0), 'Panel1');
+    layered.addLayer(new Layer(NewCanvas(640, 360,"rgb(0,0,0)"), 550, 0), 'Panel2');
+    layered.addLayer(new Layer(NewCanvas(640, 480, "rgb(0,0,0)"), 0, 370), 'Panel3');
     layered.addLayer(new Layer(backCanvas, 650, 370), 'Background');
+    layered.addLayer(new Layer(textCanvas, 650, 370), 'Text');
+    layered.addLayer(new Layer(countDown, 0, 0), 'CountDown');
+
+    var cd = layered.getLayerByName('CountDown');
 
     img.onload = function()
     {
         var background = layered.getLayerByName('Background');
         var ratio = img.width / background.width;
         background.ctx.drawImage(img, 0, 0, img.width / ratio, img.height / ratio) ;
-        //background.done = true;
+        //background.renderOnce = true;
     }
 
     requestAnimFrame(FullDraw);
@@ -154,6 +198,45 @@
         layered.getLayerByName('Panel3').draw = full;
 
     });
+
+    function PanelCount(count, panel) {
+        if (count === 0) {
+            count = 'Cheese!';
+        }
+
+        if (panel === 1) {
+            layered.getLayerByName('CountDown').addText(count +'', 50, 480, 320);
+        }
+         if (panel === 2) {
+            layered.getLayerByName('CountDown').addText(count +'', 50, 1130, 320);
+        }
+         if (panel === 3) {
+            layered.getLayerByName('CountDown').addText(count +'', 50, 590, 820);
+        }
+    };
+
+    function photoCountDown(count, panel){
+        if(count >= 0 && panel <= 3) {
+            PanelCount(count, panel);
+            count = count - 1;
+            setTimeout(function() {photoCountDown(count, panel)}, 1000);
+        }else{
+            if (panel <= 3) {
+                a.update();
+                layered.getLayerByName('Panel' + panel).done = true;
+                panel += 1;
+                count = 5;
+                PanelCount(count, panel);
+                count -= 1;
+                setTimeout(function() {photoCountDown(count, panel)}, 1000);
+            }else{
+                layered.getLayerByName('CountDown').clearCanvas();
+                document.body.appendChild(layered.getImage());
+                layered.getLayerByName('CountDown').addText('Please Wait', 50, 450, 380);
+
+            }
+        }
+    };
 
 </script>
 </html>

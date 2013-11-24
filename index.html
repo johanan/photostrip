@@ -11,13 +11,28 @@
             width: 892px;
             height: 637px;
         }
+
+        .lato {
+            font-family: 'Lato', sans-serif;
+        }
+
+        .creepster {
+            font-family: 'Creepster', serif;
+        }
+
+        .griffy {
+            font-family: 'Griffy', serif;
+        }
     </style>
 
     <script type="text/javascript" src="http://evanw.github.com/glfx.js/glfx.js"></script>
     <script src="wcvj.js"></script>
+    <link href="http://fonts.googleapis.com/css?family=Lobster|Rye|Griffy|Creepster|Butcherman|Press+Start+2P" rel="stylesheet" type="text/css">
 </head>
 <body>
     <h1>Build that canvas</h1>
+    <span class="lato">Photobooth</span>
+    <span class="griffy">Load this</span>
     <div id="canvas-container" class="canvas-container">
         <canvas id="final" width="1190" height="850" class="canvas-photo"></canvas>
     </div>
@@ -34,6 +49,10 @@
 			};
 	})();
 
+    Settings = function Settings(){
+        this.photoTime = 5;
+    };
+
      Layer = function Layer(el, dx, dy){
         this.el = el;
         this.width = el.width;
@@ -43,7 +62,7 @@
         this.done = false;
         this.draw = function(){};
         this.ctx = this.el.getContext('2d');
-    }
+    };
 
     Layer.prototype = {
         update: function update(){
@@ -54,13 +73,28 @@
             return this.done;
         },
 
-        addText: function addText(text, fontSize, x, y){
-           this.ctx.font = fontSize + 'px Arial';
+        addText: function addText(text, font, fontSize, x, y){
+           this.ctx.font = fontSize + 'px "' + font + '"';
            this.ctx.fillStyle = "white";
            this.ctx.lineWidth = 6;
-           this.ctx.textBaseline = "alphabetic";
            this.clearCanvas();
            this.wrapText(text, x, y, (this.width - x), fontSize + 5)
+        },
+
+        addTextTopLeft: function addTextTopLeft(text, font, fontSize, x, y) {
+            this.ctx.save();
+            this.ctx.textAlign = 'left';
+            this.ctx.textBaseline = 'top';
+            this.addText(text, font, fontSize, x, y);
+            this.ctx.restore();
+        },
+
+        addTextBottomRight: function addTextBottomRight(text, font, fontSize, x, y) {
+            this.ctx.save();
+            this.ctx.textAlign = 'right';
+            this.ctx.textBaseline = 'bottom';
+            this.addText(text, font, fontSize, x, y);
+            this.ctx.restore();
         },
 
         wrapText: function wrapText(text, x, y, maxWidth, lineHeight) {
@@ -101,7 +135,9 @@
     LayeredCanvas.prototype = {
         addLayer: function(el, name){
             this.layers.push(el);
-            this.layerHash[name] = this.layers.length - 1
+            this.layerHash[name] = this.layers.length - 1;
+
+            return this.layers[this.layers.length];
         },
 
         getLayerByName: function(name){
@@ -121,6 +157,13 @@
             this.render();
             img.src = this.final.toDataURL();
             return img;
+        },
+
+        resetLayers: function resetLayers() {
+            for(var i=0; i<this.layers.length;i++)
+            {
+                this.layers[i].done = false;
+            }
         }
     };
 
@@ -142,7 +185,7 @@
     countDown.width = 1190;
     countDown.height = 850;
 
-    layered.addLayer(new Layer(NewCanvas(1190, 850, "rgb(255,255,255)"), 0, 0), 'Base')
+    layered.addLayer(new Layer(NewCanvas(1190, 850, "rgb(255,255,255)"), 0, 0), 'Base');
     layered.addLayer(new Layer(NewCanvas(540, 360, "rgb(0,0,0)"), 0, 0), 'Panel1');
     layered.addLayer(new Layer(NewCanvas(640, 360,"rgb(0,0,0)"), 550, 0), 'Panel2');
     layered.addLayer(new Layer(NewCanvas(640, 480, "rgb(0,0,0)"), 0, 370), 'Panel3');
@@ -205,13 +248,13 @@
         }
 
         if (panel === 1) {
-            layered.getLayerByName('CountDown').addText(count +'', 50, 480, 320);
+            layered.getLayerByName('CountDown').addTextBottomRight(count +'', 'Griffy', 50, 510, 340);
         }
          if (panel === 2) {
-            layered.getLayerByName('CountDown').addText(count +'', 50, 1130, 320);
+            layered.getLayerByName('CountDown').addTextBottomRight(count +'', 'Griffy', 50, 1160, 340);
         }
          if (panel === 3) {
-            layered.getLayerByName('CountDown').addText(count +'', 50, 590, 820);
+            layered.getLayerByName('CountDown').addTextBottomRight(count +'', 'Griffy', 50, 610, 840);
         }
     };
 
@@ -232,10 +275,16 @@
             }else{
                 layered.getLayerByName('CountDown').clearCanvas();
                 document.body.appendChild(layered.getImage());
-                layered.getLayerByName('CountDown').addText('Please Wait', 50, 450, 380);
+                layered.getLayerByName('CountDown').addText('Please Wait', 'Griffy', 50, 450, 380);
+                setTimeout(photoReset, 3000);
 
             }
         }
+    };
+
+    function photoReset() {
+        layered.getLayerByName('CountDown').clearCanvas();
+        layered.resetLayers();
     };
 
 </script>

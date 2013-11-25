@@ -102,15 +102,18 @@
         this.done = false;
         this.draw = function(){};
         this.ctx = this.el.getContext('2d');
+        this.renderOnce = false;
     };
 
     Layer.prototype = {
         update: function update(){
-            if(!this.done){
+            if (!this.done && !this.renderOnce) {
                 this.draw.apply(this.el, [this.ctx]);
+            }else if (this.renderOnce) {
+                this.draw.apply(this.el, [this.ctx]);
+                this.done = true;
+                this.renderOnce = false;
             }
-
-            return this.done;
         },
 
         addText: function addText(text, font, fontSize, x, y){
@@ -211,6 +214,7 @@
             for(var i=0; i<this.layers.length;i++)
             {
                 this.layers[i].done = false;
+                this.layers[i].renderOnce = false;
             }
         }
     };
@@ -248,7 +252,7 @@
         var background = layered.getLayerByName('Background');
         var ratio = img.width / background.width;
         background.ctx.drawImage(img, 0, 0, img.width / ratio, img.height / ratio) ;
-        //background.renderOnce = true;
+        background.renderOnce = true;
     }
 
     requestAnimFrame(FullDraw);
@@ -291,6 +295,7 @@
     });
 
     function PanelCount(count, panel) {
+        cd.renderOnce = false;
         if (panel === 1) {
             layered.getLayerByName('CountDown').addTextBottomRight(count +'', 'Griffy', 50, 510, 340);
         }
@@ -300,6 +305,7 @@
          if (panel === 3) {
             layered.getLayerByName('CountDown').addTextBottomRight(count +'', 'Griffy', 50, 610, 840);
         }
+        cd.renderOnce = true;
     };
 
     function Smile() {

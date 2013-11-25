@@ -23,18 +23,45 @@
         .griffy {
             font-family: 'Griffy', serif;
         }
+
+        #start {
+            position: absolute;
+            top: 300px;
+            left: 375px;
+            color: #ffffff;
+            font-size: 150px;
+            text-shadow: 2px 3px 10px #333333;
+            cursor: pointer;
+        }
+
+        div.hidden, i.hidden {
+            display: none;
+        }
     </style>
 
     <script type="text/javascript" src="http://evanw.github.com/glfx.js/glfx.js"></script>
     <script src="wcvj.js"></script>
     <link href="http://fonts.googleapis.com/css?family=Lobster|Rye|Griffy|Creepster|Butcherman|Press+Start+2P" rel="stylesheet" type="text/css">
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.1/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/0.9.3/css/semantic.min.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-    <h1>Build that canvas</h1>
-    <span class="lato">Photobooth</span>
-    <span class="griffy">Load this</span>
-    <div id="canvas-container" class="canvas-container">
-        <canvas id="final" width="1190" height="850" class="canvas-photo"></canvas>
+    <div class="ui grid">
+        <div class="row">
+            <div class="column">
+                <h1 class="ui center aligned header lato">Photobooth</h1>
+                <span class="griffy">Load this</span>
+                <select name="filters" id="filters" class="ui dropdown selection"></select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="column">
+                <div id="canvas-container" class="canvas-container ui center aligned">
+                    <canvas id="final" width="1190" height="850" class="canvas-photo"></canvas>
+                </div>
+                <i id="start" class="fa fa-camera-retro fa-3x"></i>
+            </div>
+        </div>
     </div>
 </body>
 <script>
@@ -49,8 +76,21 @@
 			};
 	})();
 
-    Settings = function Settings(){
-        this.photoTime = 5;
+    Settings = {
+        photoTime: 5,
+        filters: [[[], 'None'],
+            [[["ink", [0.3]]], 'Drawn'],
+            [[["hexagonalPixelate", [0, 0, 20]]], 'Pixelate'],
+            [[["dotScreen", [0, 0, 1.1, 8]]], 'Newspaper'],
+            [[["edgeWork", [8]]], 'Edged'],
+            [[["hueSaturation", [0, -1]]], 'Black&White'],
+            [[["brightnessContrast", [0, 0.65]], ["ink", [0.25]], ["colorHalftone", [0, 0, 0.25, 7.5]]], 'Comics'],
+            [[["noise", [0.1]], ["sepia", [1]], ["vignette", [0.5, 0.7]]], 'Old Timey'],
+            [[["bulgePinch", [320, 240, 200, 0.7]]], 'Fisheye'],
+            [[["bulgePinch", [320, 240, 200, -0.7]]], 'Pinched'],
+            [[["brightnessContrast", [0.11, 0.76]], ["hueSaturation", [0, 0.76]]], 'Washed Out']],
+        fontChosen: "Rye",
+        fontSize: 37
     };
 
      Layer = function Layer(el, dx, dy){
@@ -76,7 +116,7 @@
         addText: function addText(text, font, fontSize, x, y){
            this.ctx.font = fontSize + 'px "' + font + '"';
            this.ctx.fillStyle = "white";
-           this.ctx.lineWidth = 6;
+           this.ctx.lineWidth = 10;
            this.clearCanvas();
            this.wrapText(text, x, y, (this.width - x), fontSize + 5)
         },
@@ -150,6 +190,14 @@
                 this.layers[i].update();
                 this.ctx.drawImage(this.layers[i].el, this.layers[i].x, this.layers[i].y);
             }
+        },
+
+        getPNG: function getPNG() {
+            return this.final.toDataURL();
+        },
+
+        getJPG: function getJPG(quality) {
+            return this.final.toDataURL('image/jpeg', quality);
         },
 
         getImage: function() {
@@ -243,10 +291,6 @@
     });
 
     function PanelCount(count, panel) {
-        if (count === 0) {
-            count = 'Cheese!';
-        }
-
         if (panel === 1) {
             layered.getLayerByName('CountDown').addTextBottomRight(count +'', 'Griffy', 50, 510, 340);
         }
@@ -258,23 +302,26 @@
         }
     };
 
+    function Smile() {
+        layered.getLayerByName('CountDown').addText("\uf118", 'FontAwesome', 200, 520, 420);
+    };
+
     function photoCountDown(count, panel){
-        if(count >= 0 && panel <= 3) {
+        if(count > 0 && panel <= 3) {
             PanelCount(count, panel);
             count = count - 1;
             setTimeout(function() {photoCountDown(count, panel)}, 1000);
         }else{
             if (panel <= 3) {
+                Smile();
                 a.update();
                 layered.getLayerByName('Panel' + panel).done = true;
                 panel += 1;
-                count = 5;
-                PanelCount(count, panel);
-                count -= 1;
+                count = Settings.photoTime;
                 setTimeout(function() {photoCountDown(count, panel)}, 1000);
             }else{
                 layered.getLayerByName('CountDown').clearCanvas();
-                document.body.appendChild(layered.getImage());
+                autoDownload('PhotoDownload_' + (Math.floor(new Date().getTime() / 10000)) + '.png', layered.getPNG());
                 layered.getLayerByName('CountDown').addText('Please Wait', 'Griffy', 50, 450, 380);
                 setTimeout(photoReset, 3000);
 
@@ -282,10 +329,41 @@
         }
     };
 
+    function autoDownload(name, imageData) {
+        var a = document.createElement('a');
+			a.setAttribute('href', imageData);
+			a.setAttribute('target', '_blank');
+			a.setAttribute('download',  name);
+			var e = document.createEvent('MouseEvents');
+			e.initEvent('click', true, true);
+			a.dispatchEvent(e);
+    };
+
     function photoReset() {
         layered.getLayerByName('CountDown').clearCanvas();
         layered.resetLayers();
+        start.classList.toggle('hidden');
     };
+
+    var start = document.getElementById('start');
+    var filters = document.getElementById('filters');
+
+    function loadFilters() {
+        for(var i=0; i<Settings.filters.length; i++) {
+            filters.options[filters.options.length] = new Option(Settings.filters[i][1], i);
+        }
+    };
+
+    loadFilters();
+
+    start.addEventListener('click', function(e){
+        photoCountDown(Settings.photoTime, 1);
+        start.classList.toggle('hidden');
+    });
+
+    filters.addEventListener('change', function(e){
+        a.setFilter(Settings.filters[filters.selectedIndex][0]);
+    });
 
 </script>
 </html>

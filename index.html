@@ -117,11 +117,13 @@
         },
 
         addText: function addText(text, font, fontSize, x, y){
+           this.renderOnce = false;
            this.ctx.font = fontSize + 'px "' + font + '"';
            this.ctx.fillStyle = "white";
            this.ctx.lineWidth = 10;
            this.clearCanvas();
-           this.wrapText(text, x, y, (this.width - x), fontSize + 5)
+           this.wrapText(text, x, y, (this.width - x), fontSize + 5);
+           this.renderOnce = true;
         },
 
         addTextTopLeft: function addTextTopLeft(text, font, fontSize, x, y) {
@@ -295,7 +297,6 @@
     });
 
     function PanelCount(count, panel) {
-        cd.renderOnce = false;
         if (panel === 1) {
             layered.getLayerByName('CountDown').addTextBottomRight(count +'', 'Griffy', 50, 510, 340);
         }
@@ -305,7 +306,6 @@
          if (panel === 3) {
             layered.getLayerByName('CountDown').addTextBottomRight(count +'', 'Griffy', 50, 610, 840);
         }
-        cd.renderOnce = true;
     };
 
     function Smile() {

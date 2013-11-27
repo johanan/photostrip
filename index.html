@@ -24,6 +24,10 @@
             font-family: 'Griffy', serif;
         }
 
+        .rye {
+            font-family: 'Rye', serif;
+        }
+
         #start {
             position: absolute;
             top: 300px;
@@ -41,7 +45,7 @@
 
     <script type="text/javascript" src="http://evanw.github.com/glfx.js/glfx.js"></script>
     <script src="wcvj.js"></script>
-    <link href="http://fonts.googleapis.com/css?family=Lobster|Rye|Griffy|Creepster|Butcherman|Press+Start+2P" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Lato|Rye|Griffy|Creepster|Butcherman|Press+Start+2P" rel="stylesheet" type="text/css">
     <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.1/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/0.9.3/css/semantic.min.css" rel="stylesheet" type="text/css">
 </head>
@@ -52,14 +56,17 @@
                 <h1 class="ui center aligned header lato">Photobooth</h1>
                 <span class="griffy">Load this</span>
                 <select name="filters" id="filters" class="ui dropdown selection"></select>
+                <ul id="fonts"></ul>
+                <ul id="backgrounds"></ul>
+                <input id="greetings" type="text" value="Merry">
             </div>
         </div>
         <div class="row">
             <div class="column">
                 <div id="canvas-container" class="canvas-container ui center aligned">
                     <canvas id="final" width="1190" height="850" class="canvas-photo"></canvas>
+                    <i id="start" class="fa fa-camera-retro fa-3x"></i>
                 </div>
-                <i id="start" class="fa fa-camera-retro fa-3x"></i>
             </div>
         </div>
     </div>
@@ -90,7 +97,9 @@
             [[["bulgePinch", [320, 240, 200, -0.7]]], 'Pinched'],
             [[["brightnessContrast", [0.11, 0.76]], ["hueSaturation", [0, 0.76]]], 'Washed Out']],
         fontChosen: "Rye",
-        fontSize: 37
+        fontSizeChosen: 37,
+        fontOptions: [["Rye", 37], ["Griffy", 48], ["Creepster", 53], ["Butcherman", 41], ["Press Start 2P", 30], ['Lato', 40]],
+        bgOptions: ["http://pybooth.s3.amazonaws.com/bgpacks/HD/8126573910_edc2eb805f.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/5307070755_b23cf8fc99.jpg"]
     };
 
      Layer = function Layer(el, dx, dy){
@@ -121,6 +130,10 @@
            this.ctx.font = fontSize + 'px "' + font + '"';
            this.ctx.fillStyle = "white";
            this.ctx.lineWidth = 10;
+           this.ctx.miterLimit = 3;
+            //this.ctx.lineJoin = 'circle';
+            //this.ctx.lineCap = 'round';
+           //this.ctx.strokeStyle = 'black';
            this.clearCanvas();
            this.wrapText(text, x, y, (this.width - x), fontSize + 5);
            this.renderOnce = true;
@@ -351,8 +364,11 @@
         start.classList.toggle('hidden');
     };
 
-    var start = document.getElementById('start');
-    var filters = document.getElementById('filters');
+    var start = document.getElementById('start'),
+    filters = document.getElementById('filters'),
+    fontList = document.getElementById(('fonts')),
+    greetings = document.getElementById('greetings'),
+    backgrounds = document.getElementById(('backgrounds'));
 
     function loadFilters() {
         for(var i=0; i<Settings.filters.length; i++) {
@@ -360,7 +376,35 @@
         }
     };
 
+    function loadFonts() {
+        for(var i=0;i<Settings.fontOptions.length;i++)
+        {
+            var li = document.createElement('li');
+            li.setAttribute('data-size', Settings.fontOptions[i][1]);
+            li.setAttribute('style', 'font-family: "' + Settings.fontOptions[i][0] + '"');
+            li.innerHTML = Settings.fontOptions[i][0];
+            fontList.appendChild(li);
+        }
+    };
+
+    function changeGreetingText(font, fontSize) {
+        var text = layered.getLayerByName('Text');
+        text.addText(greetings.value, font, fontSize, 50, 50);
+    };
+
+    function loadBackgrounds() {
+        for (var i=0;i<Settings.bgOptions.length;i++) {
+            var li = document.createElement('li');
+            var img = new Image();
+            img.src = Settings.bgOptions[i];
+            li.appendChild(img);
+            backgrounds.appendChild(li);
+        }
+    };
+
     loadFilters();
+    loadFonts();
+    loadBackgrounds();
 
     start.addEventListener('click', function(e){
         photoCountDown(Settings.photoTime, 1);
@@ -369,6 +413,25 @@
 
     filters.addEventListener('change', function(e){
         a.setFilter(Settings.filters[filters.selectedIndex][0]);
+    });
+
+    fontList.addEventListener('click', function(e){
+        if (e.target.tagName === 'LI') {
+            console.log(e);
+            Settings.fontChosen = e.target.innerHTML;
+            Settings.fontSizeChosen = e.target.getAttribute('data-size');
+            changeGreetingText(e.target.innerHTML, e.target.getAttribute('data-size'));
+        }
+    });
+
+    greetings.addEventListener('change', function(e){
+        changeGreetingText(Settings.fontChosen, Settings.fontSizeChosen);
+    });
+
+    backgrounds.addEventListener('click', function(e){
+        if (e.target.tagName === 'IMG') {
+            console.log(e.target.src);
+        }
     });
 
 </script>

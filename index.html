@@ -38,9 +38,20 @@
             cursor: pointer;
         }
 
-        div.hidden, i.hidden {
+        div.hidden, i.hidden, .hidden {
             display: none;
         }
+
+        .hide {
+            position: absolute;
+            left: -9999px;
+        }
+
+        #backgrounds  img {
+            max-width: 100px;
+            cursor: pointer;
+        }
+
     </style>
 
     <script type="text/javascript" src="http://evanw.github.com/glfx.js/glfx.js"></script>
@@ -54,11 +65,10 @@
         <div class="row">
             <div class="column">
                 <h1 class="ui center aligned header lato">Photobooth</h1>
-                <span class="griffy">Load this</span>
                 <select name="filters" id="filters" class="ui dropdown selection"></select>
-                <ul id="fonts"></ul>
+                <ul id="fonts" class="hide"></ul>
                 <ul id="backgrounds"></ul>
-                <input id="greetings" type="text" value="Merry">
+                <input id="greetings" type="text" value="Merry Christmas" class="rye">
             </div>
         </div>
         <div class="row">
@@ -262,6 +272,8 @@
 
     var cd = layered.getLayerByName('CountDown');
 
+    //img.addEventListener('load', drawBackground);
+
     img.onload = function()
     {
         var background = layered.getLayerByName('Background');
@@ -271,6 +283,13 @@
     }
 
     requestAnimFrame(FullDraw);
+
+    function drawBackground(img) {
+        var background = layered.getLayerByName('Background');
+        var ratio = img.width / background.width;
+        background.ctx.drawImage(img, 0, 0, img.width / ratio, img.height / ratio) ;
+        background.renderOnce = true;
+    };
 
     function FullDraw()
     {
@@ -339,11 +358,11 @@
                 count = Settings.photoTime;
                 setTimeout(function() {photoCountDown(count, panel)}, 1000);
             }else{
+                layered.getLayerByName('CountDown').addText('', 'Griffy', 10, 0, 0);
                 layered.getLayerByName('CountDown').clearCanvas();
-                autoDownload('PhotoDownload_' + (Math.floor(new Date().getTime() / 10000)) + '.png', layered.getPNG());
+                autoDownload('PhotoDownload_' + (Math.floor(new Date().getTime() / 10000)) + '.jpg', layered.getJPG(0.9));
                 layered.getLayerByName('CountDown').addText('Please Wait', 'Griffy', 50, 450, 380);
                 setTimeout(photoReset, 3000);
-
             }
         }
     };
@@ -353,6 +372,7 @@
 			a.setAttribute('href', imageData);
 			a.setAttribute('target', '_blank');
 			a.setAttribute('download',  name);
+            backgrounds.appendChild(a);
 			var e = document.createEvent('MouseEvents');
 			e.initEvent('click', true, true);
 			a.dispatchEvent(e);
@@ -415,14 +435,14 @@
         a.setFilter(Settings.filters[filters.selectedIndex][0]);
     });
 
-    fontList.addEventListener('click', function(e){
+    /*fontList.addEventListener('click', function(e){
         if (e.target.tagName === 'LI') {
             console.log(e);
             Settings.fontChosen = e.target.innerHTML;
             Settings.fontSizeChosen = e.target.getAttribute('data-size');
             changeGreetingText(e.target.innerHTML, e.target.getAttribute('data-size'));
         }
-    });
+    });*/
 
     greetings.addEventListener('change', function(e){
         changeGreetingText(Settings.fontChosen, Settings.fontSizeChosen);
@@ -430,7 +450,7 @@
 
     backgrounds.addEventListener('click', function(e){
         if (e.target.tagName === 'IMG') {
-            console.log(e.target.src);
+            drawBackground(e.target);
         }
     });
 

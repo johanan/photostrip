@@ -68,7 +68,7 @@
                 <select name="filters" id="filters" class="ui dropdown selection"></select>
                 <ul id="fonts" class="hide"></ul>
                 <ul id="backgrounds"></ul>
-                <input id="greetings" type="text" value="Merry Christmas" class="rye">
+                <textarea id="greetings" value="Merry Christmas" class="rye"></textarea>
             </div>
         </div>
         <div class="row">
@@ -145,7 +145,21 @@
             //this.ctx.lineCap = 'round';
            //this.ctx.strokeStyle = 'black';
            this.clearCanvas();
-           this.wrapText(text, x, y, (this.width - x), fontSize + 5);
+           this.ctx.strokeText(text, x, y);
+           this.ctx.fillText(text, x, y);
+           this.renderOnce = true;
+        },
+
+        addCenterText: function addCenterText(text, font, fontSize) {
+            this.renderOnce = false;
+           this.ctx.font = fontSize + 'px "' + font + '"';
+           this.ctx.fillStyle = "white";
+           this.ctx.lineWidth = 10;
+           this.ctx.miterLimit = 3;
+           this.ctx.textAlign = 'left';
+           this.ctx.textBaseline = 'top';
+           this.clearCanvas();
+           this.wrapText(text, this.width, this.height, fontSize + 5);
            this.renderOnce = true;
         },
 
@@ -165,27 +179,50 @@
             this.ctx.restore();
         },
 
-        wrapText: function wrapText(text, x, y, maxWidth, lineHeight) {
+        wrapText: function wrapText(text, maxWidth, maxHeight, lineHeight) {
             var words = text.split(' ');
             var line = '';
+            var lines = [];
+            var maxComputedWidth = 0;
+            var lastWidth = 0;
 
             for (var n =0; n < words.length; n++) {
                 var testLine = line + words[n] + ' ';
                 var metrics = this.ctx.measureText(testLine);
                 var testWidth = metrics.width;
                 if (testWidth > maxWidth && n > 0) {
-                    this.ctx.strokeText(line, x, y);
-                    this.ctx.fillText(line, x, y);
+                    //this.ctx.strokeText(line, x, y);
+                    //this.ctx.fillText(line, x, y);
+                    lines.push(line);
+                    maxComputedWidth = lastWidth > maxComputedWidth? lastWidth : maxComputedWidth;
+
                     line = words[n] + ' ';
-                    y += lineHeight;
                 }
                 else {
                     line = testLine;
+                    lastWidth = testWidth;
                 }
             }
 
-            this.ctx.strokeText(line, x, y);
-            this.ctx.fillText(line, x, y);
+            if (maxComputedWidth === 0) {
+                maxComputedWidth = lastWidth;
+            }
+
+            //this.ctx.strokeText(line, x, y);
+            //this.ctx.fillText(line, x, y);
+            lines.push(line);
+
+            //center test
+            var centerWidth, centerHeight;
+            centerWidth = (maxWidth - maxComputedWidth) / 2;
+            centerHeight = (maxHeight - (lineHeight * lines.length)) / 2;
+
+            for(var i=0;i<lines.length; i++) {
+                this.ctx.strokeText(lines[i], centerWidth, centerHeight);
+                this.ctx.fillText(lines[i], centerWidth, centerHeight);
+                //I know this isn't perfect
+                centerHeight += lineHeight;
+            }
         },
 
         clearCanvas: function clearCanvas() {
@@ -360,6 +397,7 @@
             }else{
                 layered.getLayerByName('CountDown').addText('', 'Griffy', 10, 0, 0);
                 layered.getLayerByName('CountDown').clearCanvas();
+                layered.render();
                 autoDownload('PhotoDownload_' + (Math.floor(new Date().getTime() / 10000)) + '.jpg', layered.getJPG(0.9));
                 layered.getLayerByName('CountDown').addText('Please Wait', 'Griffy', 50, 450, 380);
                 setTimeout(photoReset, 3000);
@@ -409,7 +447,7 @@
 
     function changeGreetingText(font, fontSize) {
         var text = layered.getLayerByName('Text');
-        text.addText(greetings.value, font, fontSize, 50, 50);
+        text.addCenterText(greetings.value, font, fontSize);
     };
 
     function loadBackgrounds() {

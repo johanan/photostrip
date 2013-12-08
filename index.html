@@ -8,8 +8,8 @@
         }
 
         .canvas-photo {
-            width: 892px;
-            height: 637px;
+            width: 100%;/*1170px;
+            height: 835px;*/
         }
 
         .lato {
@@ -34,8 +34,8 @@
 
         #start {
             position: absolute;
-            top: 300px;
-            left: 375px;
+            top: 35%;
+            left: 44%;
             color: #ffffff;
             font-size: 150px;
             text-shadow: 2px 3px 10px #333333;
@@ -56,32 +56,49 @@
             cursor: pointer;
         }
 
+        .options {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
     </style>
 
     <script type="text/javascript" src="http://evanw.github.com/glfx.js/glfx.js"></script>
     <script src="wcvj.js"></script>
     <link href="http://fonts.googleapis.com/css?family=Lato|Rye|Griffy|Creepster|Butcherman|Press+Start+2P|Satisfy" rel="stylesheet" type="text/css">
     <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.1/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-    <link href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/0.9.3/css/semantic.min.css" rel="stylesheet" type="text/css">
+    <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-    <div class="ui grid">
+    <div class="container">
         <div class="row">
-            <div class="column">
-                <h1 class="ui center aligned header lato">Create Your Own <span class="satisfy">PhotoStrip</span></h1>
-                Camera Effects: <select name="filters" id="filters" class="ui dropdown selection"></select>
-                Message: <textarea id="greetings" class="rye">Merry Christmas</textarea>
-                <ul id="fonts" class="hide"></ul>
-                Backgrounds: <ul id="backgrounds"></ul>
+            <div class="col-xs-12">
+                <h1 class="lato">Create Your Own Photo Strip</h1>
             </div>
         </div>
         <div class="row">
-            <div class="column">
-                <div id="canvas-container" class="canvas-container ui center aligned">
+            <div class="col-xs-12">
+                <div id="canvas-container" class="canvas-container">
                     <canvas id="final" width="1190" height="850" class="canvas-photo"></canvas>
-                    <i id="start" class="fa fa-camera-retro fa-3x"></i>
+                    <i id="start" class="fa fa-camera-retro fa-3x hidden"></i>
                 </div>
             </div>
+            <div class="col-xs-12 options" >
+                Backgrounds
+                <ul id="backgrounds" class="list-unstyled list-inline"></ul>
+            </div>
+            <div class="col-xs-6 options">
+                Camera Effects
+                <select name="filters" id="filters"></select>
+            </div>
+            <div class="col-xs-6 options">
+                Message
+                <textarea id="greetings" class="rye">Merry Christmas</textarea>
+                <ul id="fonts" class="hide"></ul>
+            </div>
+        </div>
+        <div class="row">
+            I will need to put my footer stuff here.
         </div>
     </div>
 </body>
@@ -115,7 +132,9 @@
         fontChosen: "Rye",
         fontSizeChosen: 37,
         fontOptions: [["Rye", 37], ["Griffy", 48], ["Creepster", 53], ["Butcherman", 41], ["Press Start 2P", 30], ['Lato', 40]],
-        bgOptions: ["http://pybooth.s3.amazonaws.com/bgpacks/HD/8126573910_edc2eb805f.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/5307070755_b23cf8fc99.jpg"]
+        bgOptions: ["http://pybooth.s3.amazonaws.com/bgpacks/HD/5307070755_b23cf8fc99.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/3095957623_536aa94a71.jpg",
+            "http://pybooth.s3.amazonaws.com/bgpacks/HD/4210245991_06cf18c0d9.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/3128805797_9928270f03.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/4191193825_1616c8d6b0.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/3052879283_3cea05c24d.jpg",
+            "http://pybooth.s3.amazonaws.com/bgpacks/HD/3052878435_069a92c10d.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/3065505945_3c33d7d9e6.jpg"]
     };
 
      Layer = function Layer(el, dx, dy){
@@ -355,8 +374,8 @@
 
     var a = wcvj.webcam('a', {glfx: true});
     a.video.addEventListener('canplay', function(e){
-        a.setFilter([['ink',[0.4]]]);
-        console.log(e);
+        start.classList.toggle('hidden');
+        cd.clearCanvas();
         function test(ctx){
             ctx.drawImage(a.canvas, 50, 50, 540, 360, 0,0, 540, 360);
         };
@@ -497,6 +516,8 @@
             drawBackground(e.target);
         }
     });
+
+    cd.addText('Please Click Allow to Start the Photo Strip', 'Lato', 25, 25, 100);
 
 </script>
 </html>

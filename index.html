@@ -28,6 +28,10 @@
             font-family: 'Rye', serif;
         }
 
+        .satisfy {
+            font-family: 'Satisfy', cursive;
+        }
+
         #start {
             position: absolute;
             top: 300px;
@@ -56,7 +60,7 @@
 
     <script type="text/javascript" src="http://evanw.github.com/glfx.js/glfx.js"></script>
     <script src="wcvj.js"></script>
-    <link href="http://fonts.googleapis.com/css?family=Lato|Rye|Griffy|Creepster|Butcherman|Press+Start+2P" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Lato|Rye|Griffy|Creepster|Butcherman|Press+Start+2P|Satisfy" rel="stylesheet" type="text/css">
     <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.1/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/0.9.3/css/semantic.min.css" rel="stylesheet" type="text/css">
 </head>
@@ -64,11 +68,11 @@
     <div class="ui grid">
         <div class="row">
             <div class="column">
-                <h1 class="ui center aligned header lato">Photobooth</h1>
-                <select name="filters" id="filters" class="ui dropdown selection"></select>
+                <h1 class="ui center aligned header lato">Create Your Own <span class="satisfy">PhotoStrip</span></h1>
+                Camera Effects: <select name="filters" id="filters" class="ui dropdown selection"></select>
+                Message: <textarea id="greetings" class="rye">Merry Christmas</textarea>
                 <ul id="fonts" class="hide"></ul>
-                <ul id="backgrounds"></ul>
-                <textarea id="greetings" value="Merry Christmas" class="rye"></textarea>
+                Backgrounds: <ul id="backgrounds"></ul>
             </div>
         </div>
         <div class="row">
@@ -82,6 +86,8 @@
     </div>
 </body>
 <script>
+    var Josh = window.Josh || {};
+
     var requestAnimFrame = (function(){
 		return  window.requestAnimationFrame ||
 			window.webkitRequestAnimationFrame ||

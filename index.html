@@ -479,6 +479,7 @@
         for (var i=0;i<Settings.bgOptions.length;i++) {
             var li = document.createElement('li');
             var img = new Image();
+            img.crossOrigin = '';
             img.src = Settings.bgOptions[i];
             li.appendChild(img);
             backgrounds.appendChild(li);

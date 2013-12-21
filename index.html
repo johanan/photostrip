@@ -63,14 +63,15 @@
 
     </style>
 
-    <script type="text/javascript" src="http://evanw.github.com/glfx.js/glfx.js"></script>
-    <script src="wcvj.js"></script>
-    <link href="http://fonts.googleapis.com/css?family=Lato|Rye|Griffy|Creepster|Butcherman|Press+Start+2P|Satisfy" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Lato|Rye|Griffy" rel="stylesheet" type="text/css">
     <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.1/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet" type="text/css">
 </head>
 <body>
     <div class="container">
+        <div class="row" id="webcam-allow">
+            <i class="fa fa-arrow-up"></i> Please Click Allow to Start the Photo Strip <i class="fa fa-arrow-up"></i>
+        </div>
         <div class="row">
             <div class="col-xs-12">
                 <h1 class="lato">Create Your Own Photo Strip</h1>
@@ -87,13 +88,13 @@
                 Backgrounds
                 <ul id="backgrounds" class="list-unstyled list-inline"></ul>
             </div>
-            <div class="col-xs-6 options">
+            <div class="col-xs-12 options">
                 Camera Effects
                 <select name="filters" id="filters"></select>
             </div>
-            <div class="col-xs-6 options">
+            <div class="col-xs-12 options">
                 Message
-                <textarea id="greetings" class="rye">Merry Christmas</textarea>
+                <input type="text" id="greetings" class="rye" value="">
                 <ul id="fonts" class="hide"></ul>
             </div>
         </div>
@@ -101,211 +102,17 @@
             I will need to put my footer stuff here.
         </div>
     </div>
+    <script type="text/javascript" src="http://evanw.github.com/glfx.js/glfx.js"></script>
+    <script src="wcvj.js"></script>
+    <script src="photo.js"></script>
 </body>
 <script>
-    var Josh = window.Josh || {};
 
-    var requestAnimFrame = (function(){
-		return  window.requestAnimationFrame ||
-			window.webkitRequestAnimationFrame ||
-			window.mozRequestAnimationFrame    ||
-			window.oRequestAnimationFrame      ||
-			window.msRequestAnimationFrame     ||
-			function( callback ){
-				window.setTimeout(callback, 1000 / 60);
-			};
-	})();
+/*
 
-    Settings = {
-        photoTime: 5,
-        filters: [[[], 'None'],
-            [[["ink", [0.3]]], 'Drawn'],
-            [[["hexagonalPixelate", [0, 0, 20]]], 'Pixelate'],
-            [[["dotScreen", [0, 0, 1.1, 8]]], 'Newspaper'],
-            [[["edgeWork", [8]]], 'Edged'],
-            [[["hueSaturation", [0, -1]]], 'Black&White'],
-            [[["brightnessContrast", [0, 0.65]], ["ink", [0.25]], ["colorHalftone", [0, 0, 0.25, 7.5]]], 'Comics'],
-            [[["noise", [0.1]], ["sepia", [1]], ["vignette", [0.5, 0.7]]], 'Old Timey'],
-            [[["bulgePinch", [320, 240, 200, 0.7]]], 'Fisheye'],
-            [[["bulgePinch", [320, 240, 200, -0.7]]], 'Pinched'],
-            [[["brightnessContrast", [0.11, 0.76]], ["hueSaturation", [0, 0.76]]], 'Washed Out']],
-        fontChosen: "Rye",
-        fontSizeChosen: 37,
-        fontOptions: [["Rye", 37], ["Griffy", 48], ["Creepster", 53], ["Butcherman", 41], ["Press Start 2P", 30], ['Lato', 40]],
-        bgOptions: ["http://pybooth.s3.amazonaws.com/bgpacks/HD/5307070755_b23cf8fc99.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/3095957623_536aa94a71.jpg",
-            "http://pybooth.s3.amazonaws.com/bgpacks/HD/4210245991_06cf18c0d9.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/3128805797_9928270f03.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/4191193825_1616c8d6b0.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/3052879283_3cea05c24d.jpg",
-            "http://pybooth.s3.amazonaws.com/bgpacks/HD/3052878435_069a92c10d.jpg", "http://pybooth.s3.amazonaws.com/bgpacks/HD/3065505945_3c33d7d9e6.jpg"]
-    };
 
-     Layer = function Layer(el, dx, dy){
-        this.el = el;
-        this.width = el.width;
-        this.height = el.height;
-        this.x = dx;
-        this.y = dy;
-        this.done = false;
-        this.draw = function(){};
-        this.ctx = this.el.getContext('2d');
-        this.renderOnce = false;
-    };
 
-    Layer.prototype = {
-        update: function update(){
-            if (!this.done && !this.renderOnce) {
-                this.draw.apply(this.el, [this.ctx]);
-            }else if (this.renderOnce) {
-                this.draw.apply(this.el, [this.ctx]);
-                this.done = true;
-                this.renderOnce = false;
-            }
-        },
-
-        addText: function addText(text, font, fontSize, x, y){
-           this.renderOnce = false;
-           this.ctx.font = fontSize + 'px "' + font + '"';
-           this.ctx.fillStyle = "white";
-           this.ctx.lineWidth = 10;
-           this.ctx.miterLimit = 3;
-            //this.ctx.lineJoin = 'circle';
-            //this.ctx.lineCap = 'round';
-           //this.ctx.strokeStyle = 'black';
-           this.clearCanvas();
-           this.ctx.strokeText(text, x, y);
-           this.ctx.fillText(text, x, y);
-           this.renderOnce = true;
-        },
-
-        addCenterText: function addCenterText(text, font, fontSize) {
-            this.renderOnce = false;
-           this.ctx.font = fontSize + 'px "' + font + '"';
-           this.ctx.fillStyle = "white";
-           this.ctx.lineWidth = 10;
-           this.ctx.miterLimit = 3;
-           this.ctx.textAlign = 'left';
-           this.ctx.textBaseline = 'top';
-           this.clearCanvas();
-           this.wrapText(text, this.width, this.height, fontSize + 5);
-           this.renderOnce = true;
-        },
-
-        addTextTopLeft: function addTextTopLeft(text, font, fontSize, x, y) {
-            this.ctx.save();
-            this.ctx.textAlign = 'left';
-            this.ctx.textBaseline = 'top';
-            this.addText(text, font, fontSize, x, y);
-            this.ctx.restore();
-        },
-
-        addTextBottomRight: function addTextBottomRight(text, font, fontSize, x, y) {
-            this.ctx.save();
-            this.ctx.textAlign = 'right';
-            this.ctx.textBaseline = 'bottom';
-            this.addText(text, font, fontSize, x, y);
-            this.ctx.restore();
-        },
-
-        wrapText: function wrapText(text, maxWidth, maxHeight, lineHeight) {
-            var words = text.split(' ');
-            var line = '';
-            var lines = [];
-            var maxComputedWidth = 0;
-            var lastWidth = 0;
-
-            for (var n =0; n < words.length; n++) {
-                var testLine = line + words[n] + ' ';
-                var metrics = this.ctx.measureText(testLine);
-                var testWidth = metrics.width;
-                if (testWidth > maxWidth && n > 0) {
-                    //this.ctx.strokeText(line, x, y);
-                    //this.ctx.fillText(line, x, y);
-                    lines.push(line);
-                    maxComputedWidth = lastWidth > maxComputedWidth? lastWidth : maxComputedWidth;
-
-                    line = words[n] + ' ';
-                }
-                else {
-                    line = testLine;
-                    lastWidth = testWidth;
-                }
-            }
-
-            if (maxComputedWidth === 0) {
-                maxComputedWidth = lastWidth;
-            }
-
-            //this.ctx.strokeText(line, x, y);
-            //this.ctx.fillText(line, x, y);
-            lines.push(line);
-
-            //center test
-            var centerWidth, centerHeight;
-            centerWidth = (maxWidth - maxComputedWidth) / 2;
-            centerHeight = (maxHeight - (lineHeight * lines.length)) / 2;
-
-            for(var i=0;i<lines.length; i++) {
-                this.ctx.strokeText(lines[i], centerWidth, centerHeight);
-                this.ctx.fillText(lines[i], centerWidth, centerHeight);
-                //I know this isn't perfect
-                centerHeight += lineHeight;
-            }
-        },
-
-        clearCanvas: function clearCanvas() {
-            this.ctx.clearRect(0, 0, this.width, this.height);
-        }
-     };
-
-    LayeredCanvas = function LayeredCanvas(finalCanvas){
-        this.final = finalCanvas;
-        this.layers = [];
-        this.layerHash = {};
-        this.ctx = final.getContext('2d');
-    };
-
-    LayeredCanvas.prototype = {
-        addLayer: function(el, name){
-            this.layers.push(el);
-            this.layerHash[name] = this.layers.length - 1;
-
-            return this.layers[this.layers.length];
-        },
-
-        getLayerByName: function(name){
-            return this.layers[this.layerHash[name]];
-        },
-
-        render: function(){
-            for(var i=0; i<this.layers.length;i++)
-            {
-                this.layers[i].update();
-                this.ctx.drawImage(this.layers[i].el, this.layers[i].x, this.layers[i].y);
-            }
-        },
-
-        getPNG: function getPNG() {
-            return this.final.toDataURL();
-        },
-
-        getJPG: function getJPG(quality) {
-            return this.final.toDataURL('image/jpeg', quality);
-        },
-
-        getImage: function() {
-            var img = new Image();
-            this.render();
-            img.src = this.final.toDataURL();
-            return img;
-        },
-
-        resetLayers: function resetLayers() {
-            for(var i=0; i<this.layers.length;i++)
-            {
-                this.layers[i].done = false;
-                this.layers[i].renderOnce = false;
-            }
-        }
-    };
-
+    var allow = document.getElementById('webcam-allow');
     var img = new Image();
     img.src = 'lobster_dog.jpg';
     var canvas = document.getElementById('final');
@@ -342,9 +149,9 @@
         var ratio = img.width / background.width;
         background.ctx.drawImage(img, 0, 0, img.width / ratio, img.height / ratio) ;
         background.renderOnce = true;
-    }
+    }*/
 
-    requestAnimFrame(FullDraw);
+    /*requestAnimFrame(FullDraw);
 
     function drawBackground(img) {
         var background = layered.getLayerByName('Background');
@@ -375,6 +182,7 @@
     var a = wcvj.webcam('a', {glfx: true});
     a.video.addEventListener('canplay', function(e){
         start.classList.toggle('hidden');
+        allow.classList.add('hidden');
         cd.clearCanvas();
         function test(ctx){
             ctx.drawImage(a.canvas, 50, 50, 540, 360, 0,0, 540, 360);
@@ -508,7 +316,7 @@
         }
     });*/
 
-    greetings.addEventListener('change', function(e){
+    /*greetings.addEventListener('change', function(e){
         changeGreetingText(Settings.fontChosen, Settings.fontSizeChosen);
     });
 
@@ -516,9 +324,7 @@
         if (e.target.tagName === 'IMG') {
             drawBackground(e.target);
         }
-    });
-
-    cd.addText('Please Click Allow to Start the Photo Strip', 'Lato', 25, 25, 100);
+    });*/
 
 </script>
 </html>

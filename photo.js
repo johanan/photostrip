@@ -222,7 +222,13 @@ function NewCanvas(width, height, fill){
         greetings,
         backgrounds,
         drawBackground,
-        cd;
+        cd,
+        text,
+        panelCount,
+        smile,
+        photoCountDown,
+        autoDownload,
+        photoReset;
 
     Josh.AC = function AC(){
         "use strict";
@@ -271,7 +277,10 @@ function NewCanvas(width, height, fill){
         layered.addLayer(new Josh.Layer(countDown, 0, 0), 'CountDown');
 
         cd = layered.getLayerByName('CountDown');
+        text = layered.getLayerByName('Text');
 
+
+        //wire private functions
         FullDraw = function FullDraw()
         {
             layered.render();
@@ -284,6 +293,63 @@ function NewCanvas(width, height, fill){
             backCanvas.renderOnce = true;
         };
 
+        panelCount = function panelCount(count, panel) {
+            if (panel === 1) {
+                cd.addTextBottomRight(count +'', 'Griffy', 50, 510, 340);
+            }
+             if (panel === 2) {
+                cd.addTextBottomRight(count +'', 'Griffy', 50, 1160, 340);
+            }
+             if (panel === 3) {
+                cd.addTextBottomRight(count +'', 'Griffy', 50, 610, 840);
+            }
+        };
+
+        smile = function smile() {
+            cd.addText("\uf118", 'FontAwesome', 200, 520, 420);
+        };
+
+        photoCountDown = function photoCountDown(count, panel){
+            if(count > 0 && panel <= 3) {
+                panelCount(count, panel);
+                count = count - 1;
+                setTimeout(function() {photoCountDown(count, panel)}, 1000);
+            }else{
+                if (panel <= 3) {
+                    smile();
+                    webcam.update();
+                    layered.getLayerByName('Panel' + panel).done = true;
+                    panel += 1;
+                    count = This.settings.photoTime;
+                    setTimeout(function() {photoCountDown(count, panel)}, 1000);
+                }else{
+                    cd.addText('', 'Griffy', 10, 0, 0);
+                    cd.clearCanvas();
+                    layered.render();
+                    autoDownload('PhotoDownload_' + (Math.floor(new Date().getTime() / 10000)) + '.jpg', layered.getJPG(0.9));
+                    layered.getLayerByName('CountDown').addText('Please Wait', 'Griffy', 50, 450, 380);
+                    setTimeout(photoReset, 3000);
+                }
+            }
+        };
+
+        autoDownload = function autoDownload(name, imageData) {
+            var a = document.createElement('a');
+                a.setAttribute('href', imageData);
+                a.setAttribute('target', '_blank');
+                a.setAttribute('download',  name);
+                backgrounds.appendChild(a);
+                var e = document.createEvent('MouseEvents');
+                e.initEvent('click', true, true);
+                a.dispatchEvent(e);
+        };
+
+        photoReset = function photoReset() {
+            cd.clearCanvas();
+            layered.resetLayers();
+            start.classList.toggle('hidden');
+        };
+
         requestAnimFrame(FullDraw);
 
         webcam = wcvj.webcam('a', {glfx: true});
@@ -291,7 +357,7 @@ function NewCanvas(width, height, fill){
             start.classList.toggle('hidden');
             allow.classList.add('hidden');
             cd.clearCanvas();
-            
+
             function partial(ctx){
                 ctx.drawImage(webcam.canvas, 50, 50, 540, 360, 0,0, 540, 360);
             };
@@ -307,12 +373,63 @@ function NewCanvas(width, height, fill){
         });
 
         this.loadFilters();
+        this.loadBackgrounds();
+        this.loadFonts();
+        this.wireEvents();
+    };
+
+    Josh.AC.prototype.changeGreetingText = function changeGreetingText(font, fontSize) {
+        text.addCenterText(greetings.value, font, fontSize);
     };
 
     Josh.AC.prototype.loadFilters = function loadFilters() {
         for(var i=0; i<this.settings.filters.length; i++) {
             filters.options[filters.options.length] = new Option(this.settings.filters[i][1], i);
         }
+    };
+
+    Josh.AC.prototype.loadBackgrounds = function loadBackgrounds() {
+        for (var i=0;i<this.settings.bgOptions.length;i++) {
+            var li = document.createElement('li');
+            var img = new Image();
+            img.crossOrigin = '';
+            img.src = this.settings.bgOptions[i];
+            li.appendChild(img);
+            backgrounds.appendChild(li);
+        }
+    };
+
+    Josh.AC.prototype.loadFonts = function loadFonts() {
+        //this makes sure that the canvas can use the font
+        for(var i=0;i<this.settings.fontOptions.length;i++)
+        {
+            var li = document.createElement('li');
+            li.setAttribute('data-size', this.settings.fontOptions[i][1]);
+            li.setAttribute('style', 'font-family: "' + this.settings.fontOptions[i][0] + '"');
+            li.innerHTML = this.settings.fontOptions[i][0];
+            fontList.appendChild(li);
+        }
+    };
+
+    Josh.AC.prototype.wireEvents = function wireEvents() {
+        start.addEventListener('click', function(e){
+            photoCountDown(This.settings.photoTime, 1);
+            start.classList.toggle('hidden');
+        });
+
+        filters.addEventListener('change', function(e){
+            webcam.setFilter(This.settings.filters[filters.selectedIndex][0]);
+        });
+
+        greetings.addEventListener('change', function(e){
+            This.changeGreetingText(This.settings.fontChosen, This.settings.fontSizeChosen);
+        });
+
+        backgrounds.addEventListener('click', function(e){
+            if (e.target.tagName === 'IMG') {
+                drawBackground(e.target);
+            }
+        });
     };
 
 })(window.Josh = window.Josh || {});

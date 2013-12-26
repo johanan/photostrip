@@ -1,6 +1,11 @@
 {
   "title": "photostrip",
   "name": "photostrip",
+  "version": 0.5,
+  "author": {
+      "name": "Joshua Johanan"
+  },
+  "licenses": {},
     "private": true,
   "engines": {
     "node": ">= 0.10.0"

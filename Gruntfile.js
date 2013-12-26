@@ -5,18 +5,17 @@ module.exports = function(grunt) {
   grunt.initConfig({
     // Metadata.
     pkg: grunt.file.readJSON('package.json'),
-    banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
+    banner: '/*! <%= pkg.title %> - v<%= pkg.version %> - ' +
       '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
       '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
       ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n',
     // Task configuration.
     concat: {
       options: {
-        banner: '<%= banner %>',
         stripBanners: true
       },
       dist: {
-        src: ['lib/*.js'],
+        src: ['lib/wcvj.js', 'lib/photo.js'],
         dest: '<%= pkg.name %>.js'
       }
     },

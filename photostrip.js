@@ -152,7 +152,7 @@ wcvj.webglIsSupported = function(){
 		return {video: video, canvas: canvas, setDraw: setDraw, setFilter: setFilter, update: forceUpdate};
 	};
 }(window.wcvj));
-function quickGetJSON(url, callback)
+function quickGetJSON(url, callback, error)
 {
     var request = new XMLHttpRequest();
     request.onreadystatechange = function()
@@ -160,6 +160,14 @@ function quickGetJSON(url, callback)
         if (request.readyState === 4 && request.status === 200)
         {
             callback(JSON.parse(request.responseText));
+        }
+
+        if (request.readyState === 4 && request.status !== 200)
+        {
+            if (error !== undefined)
+            {
+                error(request.responseText);
+            }
         }
     };
     request.open('GET', url, true);
@@ -222,13 +230,6 @@ function NewCanvas(width, height, fill){
 
         getJPG: function getJPG(quality) {
             return this.final.toDataURL('image/jpeg', quality);
-        },
-
-        getImage: function() {
-            var img = new Image();
-            this.render();
-            img.src = this.final.toDataURL();
-            return img;
         },
 
         resetLayers: function resetLayers() {
@@ -376,13 +377,16 @@ function NewCanvas(width, height, fill){
         greetings,
         backgrounds,
         drawBackground,
+        drawBackgroundProxy,
         cd,
         text,
         panelCount,
         smile,
         photoCountDown,
         autoDownload,
-        photoReset;
+        photoReset,
+        photoCredits,
+        buildPhotoCredit;
 
     Josh.AC = function AC(){
         "use strict";
@@ -391,9 +395,21 @@ function NewCanvas(width, height, fill){
     };
 
     Josh.AC.prototype.getSettings = function getSettings(){
-        quickGetJSON("settings.json", function(d){
+        var sett;
+        if (location.hash !== "") {
+            sett = location.hash.substring(1) + '.json';
+        }else {
+            sett = 'settings.json';
+        }
+        quickGetJSON(sett, function(d){
            This.settings = d;
            This.init();
+        }, function(){
+            quickGetJSON('settings.json', function(d){
+               //something failed
+               This.settings = d;
+               This.init();
+            });
         });
     };
 
@@ -413,9 +429,10 @@ function NewCanvas(width, height, fill){
         countDown = document.createElement('canvas');
         start = document.getElementById('start');
         filters = document.getElementById('filters');
-        fontList = document.getElementById(('fonts'));
+        fontList = document.getElementById('fonts');
         greetings = document.getElementById('greetings');
-        backgrounds = document.getElementById(('backgrounds'));
+        backgrounds = document.getElementById('backgrounds');
+        photoCredits = document.getElementById('photo-credits');
 
         textCanvas.width = 540;
         textCanvas.height = 480;
@@ -445,6 +462,13 @@ function NewCanvas(width, height, fill){
             var ratio = img.width / backCanvas.width;
             backCanvas.ctx.drawImage(img, 0, 0, img.width / ratio, img.height / ratio) ;
             backCanvas.renderOnce = true;
+        };
+
+        drawBackgroundProxy = function drawBackgroundProxy(e) {
+            //proxy so I don't dirty up the drawBackground function
+            //and remove the listener
+            drawBackground(e.target);
+            e.target.removeEventListener('load', drawBackgroundProxy);
         };
 
         panelCount = function panelCount(count, panel) {
@@ -504,7 +528,18 @@ function NewCanvas(width, height, fill){
             start.classList.toggle('hidden');
         };
 
-        requestAnimFrame(FullDraw);
+        buildPhotoCredit = function buildPhotoCredit(photo) {
+            var li = document.createElement('li');
+            var img = new Image();
+            img.src = photo[0];
+            li.appendChild(img);
+            var a = document.createElement('a');
+            a.href = photo[1].author.url;
+            a.innerText = photo[1].author.name;
+            a.target = "_blank";
+            li.appendChild(a);
+            photoCredits.appendChild(li);
+        };
 
         webcam = wcvj.webcam('a', {glfx: true});
         webcam.video.addEventListener('canplay', function(){
@@ -523,13 +558,15 @@ function NewCanvas(width, height, fill){
             panel1.draw = partial;
             panel2.draw = full;
             panel3.draw = full;
-
         });
-
+        this.loadFonts(function(){
+                This.setGreeting(This.settings.message);
+            });
         this.loadFilters();
         this.loadBackgrounds();
-        this.loadFonts();
         this.wireEvents();
+
+        requestAnimFrame(FullDraw);
     };
 
     Josh.AC.prototype.changeGreetingText = function changeGreetingText(font, fontSize) {
@@ -547,13 +584,18 @@ function NewCanvas(width, height, fill){
             var li = document.createElement('li');
             var img = new Image();
             img.crossOrigin = '';
-            img.src = this.settings.bgOptions[i];
+            img.src = this.settings.bgOptions[i][0];
+            //load the first img into the canvas
+            if (i === 0) {
+                img.addEventListener('load', drawBackgroundProxy);
+            }
             li.appendChild(img);
             backgrounds.appendChild(li);
+            buildPhotoCredit(this.settings.bgOptions[i]);
         }
     };
 
-    Josh.AC.prototype.loadFonts = function loadFonts() {
+    Josh.AC.prototype.loadFonts = function loadFonts(cb) {
         //this makes sure that the canvas can use the font
         for(var i=0;i<this.settings.fontOptions.length;i++)
         {
@@ -563,6 +605,7 @@ function NewCanvas(width, height, fill){
             li.innerHTML = this.settings.fontOptions[i][0];
             fontList.appendChild(li);
         }
+        cb();
     };
 
     Josh.AC.prototype.wireEvents = function wireEvents() {
@@ -583,6 +626,29 @@ function NewCanvas(width, height, fill){
             if (e.target.tagName === 'IMG') {
                 drawBackground(e.target);
             }
+        });
+
+        window.addEventListener("hashchange", function(){
+            This.loadNewSettings(location.hash.substring(1) + '.json');
+        });
+    };
+
+    Josh.AC.prototype.setGreeting = function setGreeting(g){
+        greetings.value = g;
+        This.changeGreetingText(This.settings.fontChosen, This.settings.fontSizeChosen);
+    };
+
+    Josh.AC.prototype.cleanUp = function cleanUp() {
+        backgrounds.innerHTML = null;
+        photoCredits.innerHTML = null;
+    };
+
+    Josh.AC.prototype.loadNewSettings = function loadNewSettings(settingsName) {
+        quickGetJSON(settingsName, function(d){
+            This.settings = d;
+            This.cleanUp();
+            This.loadBackgrounds();
+            This.setGreeting(This.settings.message);
         });
     };
 

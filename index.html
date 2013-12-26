@@ -1,7 +1,7 @@
 <!DOCTYPE  html>
 <html>
 <head>
-    <title>Canvas Test</title>
+    <title>PhotoStrip</title>
     <style>
         .canvas-container{
             position: relative;
@@ -61,6 +61,10 @@
             margin-bottom: 5px;
         }
 
+        #photo-credits img {
+            max-width: 50px;
+        }
+
     </style>
 
     <link href="http://fonts.googleapis.com/css?family=Lato|Rye|Griffy" rel="stylesheet" type="text/css">
@@ -98,12 +102,32 @@
                 <ul id="fonts" class="hide"></ul>
             </div>
         </div>
+        <hr/>
         <div class="row">
-            I will need to put my footer stuff here.
+            <div class="col-xs-12">
+               Other themes:
+               <ul class="list-unstyled list-inline">
+                   <li><a href="#newyears">New Years</a></li>
+                   <li><a href="#christmas">Christmas</a></li>
+               </ul>
+            </div>
+            <div class="col-xs-12">
+                Created by: <a href="http://ejosh.co/de">Joshua Johanan</a> | <a href="https://github.com/johanan/photostrip">Fork me on <i class="fa fa-github"></i></a>
+            </div>
+             <div class="col-xs-12">
+                Thanks/Libraries: <a href="http://www.google.com/fonts">Google Fonts</a> | <a href="http://fontawesome.io/">Font Awesome</a> | <a href="http://getbootstrap.com/">Bootstrap</a> | <a href="http://cdnjs.com">cdnjs</a> | <a href="https://github.com/johanan/WebCamVidja">WebcamVidja</a> (full disclosure: this is my library)
+            </div>
+        </div>
+        <hr/>
+        <div class="row">
+            <div class="col-xs-12">
+                Photo Credits (all licenses <a href="http://creativecommons.org/licenses/by/2.0/" target="_blank">CC BY 2.0</a>):
+                <ul id="photo-credits" class="list-unstyled list-inline"></ul>
+            </div>
         </div>
     </div>
     <script type="text/javascript" src="http://evanw.github.com/glfx.js/glfx.js"></script>
-    <script src="photostrip.js"></script>
+    <script src="photostrip.min.js"></script>
 </body>
 <script>
     var ac = new Josh.AC();

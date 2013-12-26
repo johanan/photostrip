@@ -46,7 +46,8 @@ module.exports = function(grunt) {
           jQuery: true,
           wcvj: true,
           fx: true,
-          Event: true
+          Event: true,
+            console: true
         }
       },
       gruntfile: {
@@ -64,9 +65,13 @@ module.exports = function(grunt) {
         files: '<%= jshint.gruntfile.src %>',
         tasks: ['jshint:gruntfile']
       },
-      lib_test: {
-        files: '<%= jshint.lib_test.src %>',
-        tasks: ['jshint:lib_test', 'qunit']
+      concat: {
+        files: '<%= concat.dist.src %>',
+        tasks: ['concat']
+      },
+      uglify: {
+        files: '<%= uglify.dist.src %>',
+        tasks: ['uglify']
       }
     }
   });

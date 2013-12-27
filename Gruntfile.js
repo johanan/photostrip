@@ -21,7 +21,10 @@ module.exports = function(grunt) {
     },
     uglify: {
       options: {
-        banner: '<%= banner %>'
+        banner: '<%= banner %>',
+        beautify : {
+            ascii_only : true
+        }
       },
       dist: {
         src: '<%= concat.dist.dest %>',

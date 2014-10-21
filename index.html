@@ -16,26 +16,32 @@
             font-family: 'Lato', sans-serif;
         }
 
-        .creepster {
+        .Creepster {
             font-family: 'Creepster', serif;
         }
 
-        .griffy {
+        .Griffy {
             font-family: 'Griffy', serif;
         }
 
-        .rye {
+        .Rye {
             font-family: 'Rye', serif;
         }
 
-        .satisfy {
+        .Satisfy {
             font-family: 'Satisfy', cursive;
+        }
+
+        #greetings {
+            width: 100%;
+            height: 30px;
+            font-size: 1.5em;
         }
 
         #start {
             position: absolute;
-            top: 35%;
-            left: 44%;
+            top: 40%;
+            left: 45%;
             color: #ffffff;
             font-size: 150px;
             text-shadow: 2px 3px 10px #333333;
@@ -46,7 +52,7 @@
             display: none;
         }
 
-        .hide {
+        .off-screen {
             position: absolute;
             left: -9999px;
         }
@@ -67,7 +73,7 @@
 
     </style>
 
-    <link href="http://fonts.googleapis.com/css?family=Lato|Rye|Griffy" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Lato|Rye|Griffy|Creepster|Butcherman|Press+Start+2P" rel="stylesheet" type="text/css">
     <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.1/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet" type="text/css">
 </head>
@@ -84,7 +90,7 @@
         <div class="row">
             <div class="col-xs-12">
                 <div id="canvas-container" class="canvas-container">
-                    <canvas id="final" width="1190" height="850" class="canvas-photo"></canvas>
+                    <canvas id="final" width="2030" height="1450" class="canvas-photo"></canvas>
                     <i id="start" class="fa fa-camera-retro fa-3x hidden"></i>
                 </div>
             </div>
@@ -98,8 +104,8 @@
             </div>
             <div class="col-xs-12 options">
                 Message
-                <input type="text" id="greetings" class="rye" value="">
-                <ul id="fonts" class="hide"></ul>
+                <input type="text" id="greetings" class="" value="">
+                <ul id="fonts" class="off-screen"></ul>
             </div>
         </div>
         <hr/>

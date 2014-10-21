@@ -10,7 +10,7 @@ wcvj.webglIsSupported = function(){
 	"use strict";
 	var userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.oGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 	var url = window.webkitURL || window.mozURL || window.msURL || window.URL;
-
+	
 	var requestAnimFrame = (function(){
 		return  window.requestAnimationFrame ||
 			window.webkitRequestAnimationFrame ||
@@ -21,28 +21,29 @@ wcvj.webglIsSupported = function(){
 				window.setTimeout(callback, 1000 / 60);
 			};
 	})();
-
+	
 	wcvj.webcam = function(el, options){
 		//check options
 		options = typeof options !== 'undefined' ? options : {};
 		options.canvas = typeof options.canvas !== 'undefined' ? options.canvas : false;
 		options.draw = typeof options.draw !== 'undefined' ? options.draw : false;
-		options.autoplay = typeof options.autoplay !== 'undefined' ? options.autoplay : true;
-
+        options.autoplay = typeof options.autoplay !== 'undefined' ? options.autoplay : true;
+        options.resolution = typeof options.resolution !== 'undefined' ? options.resolution: 'default';
+		
 		if(window.fx !== undefined && wcvj.webglIsSupported()){
 			options.glfx = typeof options.glfx !== undefined ? options.glfx : false;
 		}else{
 			options.glfx = false;
 		}
-
+		
 		var video;
 		var canvas, ctx, ctx3, texture, filter;
-
-
+		
+		
 		filter = [];
-
+		
 		video = document.getElementById(el);
-
+		
 		if(video === null){
 			//id not there create element
 			video = document.createElement('video');
@@ -52,7 +53,7 @@ wcvj.webglIsSupported = function(){
 		}else{
 			video.autoplay = options.autoplay;
 		}
-
+		
 		if(options.glfx && wcvj.webglIsSupported()){
 			canvas = fx.canvas();
 		}else if(options.canvas){
@@ -60,16 +61,58 @@ wcvj.webglIsSupported = function(){
 			ctx = canvas.getContext('2d');
 			ctx3 = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 			canvas.innerHTML = "Your browser does not support canvas";
-		}
-
+        }
+        
+        //determine resolution
+        
+        var quickRes = {
+            "1080p": {
+                "mandatory": {
+                    "minWidth": "1920",
+                    "minHeight": "1080"
+                }
+            },
+            "UXGA": {
+                "mandatory": {
+                    "minWidth": "1600",
+                    "minHeight": "1200"
+                }
+            },
+            "720p": {
+                "mandatory": {
+                    "minWidth": "1280",
+                    "minHeight": "720"
+                }
+            },
+            "SVGA": {
+                "mandatory": {
+                    "minWidth": "800",
+                    "minHeight": "600"
+                }
+            },
+            "VGA": {
+                "mandatory": {
+                    "minWidth": "640",
+                    "minHeight": "480"
+                }
+            },
+            'default': true
+        };
+        
+        var resolution = typeof options.resolution === 'string' ? quickRes[options.resolution] : options.resolution;
+        //one final check. If someone uses a string that does not exist just use default
+        if (resolution === undefined) {
+            resolution = quickRes['default'];
+        }
+		
 		var defaultDraw = function(){
 			ctx.drawImage(video, 0, 0);
 		};
-
+		
 		if(!options.draw){
 			options.draw = defaultDraw;
 		}
-
+		
 		var canvasDraw = function(){
 			if(options.glfx){
 				texture.loadContentsOf(video);
@@ -83,7 +126,7 @@ wcvj.webglIsSupported = function(){
 			}
 			requestAnimFrame(canvasDraw);
 		};
-
+		
 		var setDraw = function(newDraw){
 			if(options.canvas){
 				options.draw = newDraw;
@@ -93,45 +136,53 @@ wcvj.webglIsSupported = function(){
 				ctx.restore();
 			}
 		};
-
+		
 		var setFilter = function(newFilter){
 			filter = newFilter;
 		};
-
+		
 		var forceUpdate = function(){
 			if(options.glfx){
 				canvas.update();
 			}
 		};
-
-        var readyEvent = new CustomEvent('webcamReady', {'video': video, 'canvas': canvas});
-
+		
 		var playInit = function(){
 			if(options.canvas || options.glfx){
 				canvas.width = video.videoWidth;
 				canvas.height = video.videoHeight;
 			}
-
+			
 			setTimeout(function(){
 				if(options.glfx){
 					texture = canvas.texture(video);
 					canvasDraw();
-                    canvas.dispatchEvent(readyEvent);
 				}
 			}, 500);
-
+				
 			if(options.canvas){
 				canvasDraw();
-                canvas.dispatchEvent(readyEvent);
 			}
-
-		};
-
+			
+        };
+        
+        var killStream = function killStream() {
+            if (video.src !== null) {
+                video.pause();
+                //chrome should be empty string
+                video.src = '';
+                stream.stop();
+            }
+        };
+		
 		//event setup
 		video.addEventListener('canplay', playInit, false);
+        
+        var stream;
 
-		userMedia.call(navigator, {video: true, audio: false}, function(stream){
-			if(video.mozSrcObject !== undefined) {
+		userMedia.call(navigator, {video: resolution, audio: false}, function(videoStream){
+            stream = videoStream;
+            if (video.mozSrcObject !== undefined) {
 				video.mozSrcObject = stream;
 			} else if(navigator.mozGetUserMedia){
 				video.src = stream;
@@ -141,17 +192,18 @@ wcvj.webglIsSupported = function(){
 			}else{
 				video.src = stream;
 			}
-
+			
 		}, function(err){
-			var evt = new Event('UserMediaError');
+			var evt = document.createEvent('Event');
 			evt.initEvent("UserMediaError",true,true);
 			evt.UserMediaError = err;
 			video.dispatchEvent(evt);
 		});
-
-		return {video: video, canvas: canvas, setDraw: setDraw, setFilter: setFilter, update: forceUpdate};
+		
+		return {video: video, canvas: canvas, setDraw: setDraw, setFilter: setFilter, update: forceUpdate, killStream: killStream};
 	};
 }(window.wcvj));
+
 function quickGetJSON(url, callback, error) {
   var request = new XMLHttpRequest();
   request.onreadystatechange = function () {
@@ -301,7 +353,7 @@ function NewCanvas(width, height, fill) {
       this.ctx.textAlign = 'left';
       this.ctx.textBaseline = 'top';
       this.clearCanvas();
-      this.wrapText(text, this.width, this.height, fontSize + 5);
+      this.wrapText(text, this.width - 100, this.height, fontSize + 5, 50);
       this.renderOnce = true;
     },
 
@@ -321,7 +373,7 @@ function NewCanvas(width, height, fill) {
       this.ctx.restore();
     },
 
-    wrapText: function wrapText(text, maxWidth, maxHeight, lineHeight) {
+    wrapText: function wrapText(text, maxWidth, maxHeight, lineHeight, margin) {
       var words = text.split(' ');
       var line = '';
       var lines = [];
@@ -352,7 +404,7 @@ function NewCanvas(width, height, fill) {
 
       //center test
       var centerWidth, centerHeight;
-      centerWidth = (maxWidth - maxComputedWidth) / 2;
+      centerWidth = (maxWidth - maxComputedWidth) / 2 + margin;
       centerHeight = (maxHeight - (lineHeight * lines.length)) / 2;
 
       for (var i = 0; i < lines.length; i++) {
@@ -402,6 +454,15 @@ function NewCanvas(width, height, fill) {
       photoCredits,
       buildPhotoCredit;
 
+    var canvasW = 2030,
+      canvasH = 1450,
+      panelH = 720,
+      shortPanelW = 740,
+      longPanelW = 1280,
+      gutterW = 10,
+      gutterH = 10,
+      margin = 50;
+
     this.init = function init() {
       //set everything up
       var allow = document.getElementById('webcam-allow');
@@ -409,11 +470,11 @@ function NewCanvas(width, height, fill) {
       canvas_container = document.getElementById('canvas-container');
       ctx = canvas.getContext('2d');
       layered = new Josh.LayeredCanvas(canvas);
-      base = new Josh.Layer(new NewCanvas(1190, 850, "rgb(255,255,255)"), 0, 0);
-      panel1 = new Josh.Layer(new NewCanvas(540, 360, "rgb(0,0,0)"), 0, 0);
-      panel2 = new Josh.Layer(new NewCanvas(640, 360, "rgb(0,0,0)"), 550, 0);
-      panel3 = new Josh.Layer(new NewCanvas(640, 480, "rgb(0,0,0)"), 0, 370);
-      backCanvas = new Josh.Layer(new NewCanvas(540, 480, "rgb(0,0,0)"), 650, 370);
+      base = new Josh.Layer(new NewCanvas(canvasW, canvasH, "rgb(255,255,255)"), 0, 0);
+      panel1 = new Josh.Layer(new NewCanvas(shortPanelW, panelH, "rgb(0,0,0)"), 0, 0);
+      panel2 = new Josh.Layer(new NewCanvas(longPanelW, panelH, "rgb(0,0,0)"), shortPanelW + gutterW, 0);
+      panel3 = new Josh.Layer(new NewCanvas(longPanelW, panelH, "rgb(0,0,0)"), 0, panelH + gutterH);
+      backCanvas = new Josh.Layer(new NewCanvas(shortPanelW, panelH, "rgb(0,0,0)"), longPanelW + gutterW, panelH + gutterH);
       textCanvas = document.createElement('canvas');
       countDown = document.createElement('canvas');
       start = document.getElementById('start');
@@ -423,18 +484,18 @@ function NewCanvas(width, height, fill) {
       backgrounds = document.getElementById('backgrounds');
       photoCredits = document.getElementById('photo-credits');
 
-      textCanvas.width = 540;
-      textCanvas.height = 480;
-      countDown.width = 1190;
-      countDown.height = 850;
+      textCanvas.width = shortPanelW;
+      textCanvas.height = panelH;
+      countDown.width = 400;
+      countDown.height = 400;
 
       layered.addLayer(base, 'Base');
       layered.addLayer(panel1, 'Panel1');
       layered.addLayer(panel2, 'Panel2');
       layered.addLayer(panel3, 'Panel3');
       layered.addLayer(backCanvas, 'Background');
-      layered.addLayer(new Josh.Layer(textCanvas, 650, 370), 'Text');
-      layered.addLayer(new Josh.Layer(countDown, 0, 0), 'CountDown');
+      layered.addLayer(new Josh.Layer(textCanvas, longPanelW + gutterW, panelH + gutterH), 'Text');
+      layered.addLayer(new Josh.Layer(countDown, shortPanelW - countDown.width - margin, panelH - countDown.width - margin), 'CountDown');
 
       cd = layered.getLayerByName('CountDown');
       text = layered.getLayerByName('Text');
@@ -459,21 +520,29 @@ function NewCanvas(width, height, fill) {
         e.target.removeEventListener('load', drawBackgroundProxy);
       };
 
-      panelCount = function panelCount(count, panel) {
-        if (panel === 1) {
-          cd.addTextBottomRight(count + '', 'Griffy', 50, 510, 340);
-        }
-        if (panel === 2) {
-          cd.addTextBottomRight(count + '', 'Griffy', 50, 1160, 340);
-        }
-        if (panel === 3) {
-          cd.addTextBottomRight(count + '', 'Griffy', 50, 610, 840);
-        }
+      panelCount = function panelCount(count, panelNumber) {
+        var panel = this.getPanelBounds(panelNumber);
+        cd.x = (panel.x + panel.w) - countDown.width - margin;
+        cd.y = (panel.y + panel.h) - countDown.width - margin;
+        cd.addTextBottomRight(count + '', 'Griffy', 50, countDown.width, countDown.width);
+      }.bind(this);
+
+      this.getPanelBounds = function getPanelBounds(panelNumber){
+        var panel = layered.getLayerByName('Panel' + panelNumber);
+        return {
+          x: panel.x,
+          y: panel.y,
+          w: panel.width,
+          h: panel.height
+        };
       };
 
-      smile = function smile() {
-        cd.addText("\uf118", 'FontAwesome', 200, 520, 420);
-      };
+      smile = function smile(panelNumber) {
+        var panel = this.getPanelBounds(panelNumber);
+        cd.x = (panel.x + (panel.w / 2)) - cd.width / 2;
+        cd.y = (panel.y + (panel.h / 2)) - cd.width / 2;
+        cd.addText("\uf118", 'FontAwesome', 200, 100, 300);
+      }.bind(this);
 
       photoCountDown = function photoCountDown(count, panel, originalCount) {
         if (count > 0 && panel <= 3) {
@@ -484,7 +553,7 @@ function NewCanvas(width, height, fill) {
           }, 1000);
         } else {
           if (panel <= 3) {
-            smile();
+            smile(panel);
             webcam.update();
             layered.getLayerByName('Panel' + panel).done = true;
             panel += 1;
@@ -497,7 +566,7 @@ function NewCanvas(width, height, fill) {
             cd.clearCanvas();
             layered.render();
             autoDownload('PhotoDownload_' + (Math.floor(new Date().getTime() / 10000)) + '.jpg', layered.getJPG(0.9));
-            layered.getLayerByName('CountDown').addText('Please Wait', 'Griffy', 50, 450, 380);
+            cd.addText('Please Wait', 'Griffy', 50, 100, 300);
             setTimeout(photoReset, 3000);
           }
         }
@@ -508,7 +577,7 @@ function NewCanvas(width, height, fill) {
         a.setAttribute('href', imageData);
         a.setAttribute('target', '_blank');
         a.setAttribute('download', name);
-        backgrounds.appendChild(a);
+        //backgrounds.appendChild(a);
         var e = document.createEvent('MouseEvents');
         e.initEvent('click', true, true);
         a.dispatchEvent(e);
@@ -533,14 +602,14 @@ function NewCanvas(width, height, fill) {
         photoCredits.appendChild(li);
       };
 
-      webcam = wcvj.webcam('a', {glfx: true});
+      webcam = wcvj.webcam('a', {glfx: true, resolution: '720p'});
       webcam.video.addEventListener('canplay', function () {
         start.classList.toggle('hidden');
         allow.classList.add('hidden');
         cd.clearCanvas();
 
         function partial(ctx) {
-          ctx.drawImage(webcam.canvas, 50, 50, 540, 360, 0, 0, 540, 360);
+          ctx.drawImage(webcam.canvas, 200, 0, shortPanelW, panelH, 0, 0, shortPanelW, panelH);
         }
 
         function full(ctx) {
@@ -566,9 +635,10 @@ function NewCanvas(width, height, fill) {
     this.initPhotobooth = function initPhotobooth(newSettings) {
       this.settings = extend(this.settings, newSettings);
       this.loadFilters();
-      this.loadFonts(fontList);
+      this.loadFonts(fontList, function(){
+        this.setGreeting(this.settings.message);
+      }.bind(this));
       this.loadBackgrounds();
-      this.setGreeting(this.settings.message);
     };
 
     this.changeGreetingText = function changeGreetingText(font, fontSize) {
@@ -606,7 +676,7 @@ function NewCanvas(width, height, fill) {
       }
     };
 
-    this.loadFonts = function loadFonts(fontList) {
+    this.loadFonts = function loadFonts(fontList, cb) {
       //remove any current items
       while (fontList.firstChild) {
         fontList.removeChild(fontList.firstChild);
@@ -619,6 +689,8 @@ function NewCanvas(width, height, fill) {
         li.innerHTML = this.settings.fontOptions[i][0];
         fontList.appendChild(li);
       }
+      //todo: load CSS through javascript
+      setTimeout(cb, 1000);
     };
 
     this.wireEvents = function wireEvents() {
@@ -647,6 +719,7 @@ function NewCanvas(width, height, fill) {
     };
 
     this.setGreeting = function setGreeting(g) {
+      greetings.className = this.settings.fontChosen;
       greetings.value = g;
       this.changeGreetingText(this.settings.fontChosen, this.settings.fontSizeChosen);
     };

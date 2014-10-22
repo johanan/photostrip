@@ -2,7 +2,9 @@
     "fontSizeChosen": 48,
     "bgOptions": [["http://pybooth.s3.amazonaws.com/bgpacks/halloween/skeletons_dancing.jpg", {"author": {"name": "Kevin Dooley", "url": "https://www.flickr.com/photos/pagedooley/"}}],
       ["http://pybooth.s3.amazonaws.com/bgpacks/halloween/cat_o_latern.jpg", {"author": {"name": "WxMom", "url": "https://www.flickr.com/photos/wxmom/"}}],
-      ["http://pybooth.s3.amazonaws.com/bgpacks/halloween/boston_wig.jpg", {"author": {"name": "Don Hankins", "url": "https://www.flickr.com/photos/23905174@N00/"}}]
+      ["http://pybooth.s3.amazonaws.com/bgpacks/halloween/boston_wig.jpg", {"author": {"name": "Don Hankins", "url": "https://www.flickr.com/photos/23905174@N00/"}}],
+	  ["http://pybooth.s3.amazonaws.com/bgpacks/halloween/bw_skeletons.jpg", {"author": {"name": "Diógenes ;)", "url": "https://www.flickr.com/photos/diogeneselfilosofo/"}}],
+	  ["http://pybooth.s3.amazonaws.com/bgpacks/halloween/color_skeletons.jpg", {"author": {"name": "Diógenes ;)", "url": "https://www.flickr.com/photos/diogeneselfilosofo/"}}]
     ],
     "message": "Happy Halloween!"
 }

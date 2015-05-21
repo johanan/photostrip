@@ -1,4 +1,5 @@
 import boto
+import fnmatch
 import os
 
 from boto.s3.key import Key
@@ -18,5 +19,6 @@ conn = boto.connect_s3()
 bucket = conn.get_bucket('photostrip')
 
 files = ['index.html', 'photostrip.js', 'photostrip.min.js', 'settings.json', 'newyears.json', 'christmas.json', 'halloween.json']
-map(lambda files: upload(files, bucket), files)
+
+map(lambda f: upload(f, bucket), files)
 

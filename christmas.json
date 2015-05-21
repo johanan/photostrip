@@ -6,5 +6,7 @@
         ["http://pybooth.s3.amazonaws.com/bgpacks/HD/3052879283_3cea05c24d.jpg", {"author": {"name": "[puamelia]", "url": "http://www.flickr.com/photos/ykjc9/"}}],
         ["http://pybooth.s3.amazonaws.com/bgpacks/HD/3052878435_069a92c10d.jpg", {"author": {"name": "[puamelia]", "url": "http://www.flickr.com/photos/ykjc9/"}}],
         ["http://pybooth.s3.amazonaws.com/bgpacks/HD/3065505945_3c33d7d9e6.jpg", {"author": {"name": "[puamelia]", "url": "http://www.flickr.com/photos/ykjc9/"}}]],
-    "message": "Merry Christmas!"
+    "message": "Merry Christmas!",
+    "fontChosen": "Rye",
+    "fontSizeChosen": 37
 }

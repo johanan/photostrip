@@ -2,5 +2,7 @@
         ["http://pybooth.s3.amazonaws.com/bgpacks/HD/8331461402_a5ddf5a1eb.jpg", {"author": {"name": "Alex G.", "url": "http://www.flickr.com/photos/digidreamgrafix/"}}],
         ["http://pybooth.s3.amazonaws.com/bgpacks/HD/646668301_809efdb4f5.jpg", {"author": {"name": "mK B.", "url": "http://www.flickr.com/photos/mk_b/"}}],
         ["http://pybooth.s3.amazonaws.com/bgpacks/HD/6623518435_f84017d575.jpg", {"author": {"name": "Sean MacEntee", "url": "http://www.flickr.com/photos/smemon/"}}]],
-    "message": "Happy New Year's!"
+    "message": "Happy New Year's!",
+    "fontChosen": "Rye",
+    "fontSizeChosen": 37
 }

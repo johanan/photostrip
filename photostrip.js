@@ -545,7 +545,8 @@ function NewCanvas(width, height, fill) {
       }.bind(this);
 
       photoCountDown = function photoCountDown(count, panel, originalCount) {
-        if (count > 0 && panel <= 3) {
+          if (count > 0 && panel <= 3) {
+          layered.getLayerByName('Panel' + panel).done = false;
           panelCount(count, panel);
           count = count - 1;
           setTimeout(function () {
@@ -586,7 +587,9 @@ function NewCanvas(width, height, fill) {
       photoReset = function photoReset() {
         cd.clearCanvas();
         layered.resetLayers();
-        start.classList.toggle('hidden');
+        start.classList.remove('hidden');
+        panel2.done = true;
+        panel3.done = true;
       };
 
       buildPhotoCredit = function buildPhotoCredit(photo) {
@@ -619,6 +622,7 @@ function NewCanvas(width, height, fill) {
         panel1.draw = partial;
         panel2.draw = full;
         panel3.draw = full;
+        setTimeout(photoReset, 3000);
       });
 
       this.wireEvents();

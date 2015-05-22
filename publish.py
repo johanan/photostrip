@@ -18,7 +18,7 @@ conn = boto.connect_s3()
 #the AWS keys are in the env - check Trello for them
 bucket = conn.get_bucket('photostrip')
 
-files = ['index.html', 'photostrip.js', 'photostrip.min.js', 'settings.json', 'newyears.json', 'christmas.json', 'halloween.json']
+files = ['index.html', 'photostrip.js', 'photostrip.min.js', 'settings.json', 'newyears.json', 'christmas.json', 'halloween.json', 'liz.json']
 
 map(lambda f: upload(f, bucket), files)
 
